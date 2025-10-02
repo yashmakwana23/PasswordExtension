@@ -1,0 +1,15 @@
+{
+  "name": "password-manager-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Password Manager Extension - Vercel Deployment",
+  "main": "api/index.js",
+  "scripts": {
+    "dev": "node api/index.js"
+  },
+  "dependencies": {
+    "googleapis": "^128.0.0"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}

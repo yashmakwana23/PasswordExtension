@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Secure Password Manager",
+  "version": "1.0.0",
+  "description": "Secure password manager with Google Sheets integration and autofill capabilities",
+
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+
+  "host_permissions": [
+    "<all_urls>"
+  ],
+
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/content-script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "action": {
+    "default_popup": "popup/popup-new.html"
+  },
+
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/icon48.png"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src https://sheets.googleapis.com https://www.googleapis.com https://accounts.google.com https://*.vercel.app"
+  }
+}

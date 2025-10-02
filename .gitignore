@@ -1,0 +1,42 @@
+# Sensitive configuration files
+config.js
+
+# Node modules
+node_modules/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build output
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Service account credentials
+service-account-credentials.json
+*.json.key
+
+# Vercel
+.vercel
+
+# Test files with hardcoded data
+test_standalone.html
+test_hash.html
