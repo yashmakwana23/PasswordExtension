@@ -1,158 +1,119 @@
-# Password Manager Backend - Vercel Deployment
+# Password Manager Backend - Vercel Serverless API
 
-This backend server handles authentication and credential fetching from Google Sheets using a service account, keeping the sheet completely private.
+This is the backend API for the Secure Password Manager Chrome Extension. It provides secure access to Google Sheets credentials using service account authentication, ensuring your spreadsheet remains completely private.
 
-## Setup Instructions
+## 🎯 Purpose
 
-### 1. Create Google Service Account
+- **Secure Sheet Access** - Keep Google Sheet private using service account credentials
+- **Authentication API** - Validate user login credentials from Google Sheets
+- **Credential Fetching** - Retrieve stored credentials without exposing the sheet
+- **Serverless Deployment** - No server maintenance required
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select existing one
-3. Enable **Google Sheets API**:
-   - Navigation menu → APIs & Services → Library
-   - Search "Google Sheets API" → Enable
-4. Create Service Account:
-   - APIs & Services → Credentials
-   - Create Credentials → Service Account
-   - Name: `password-manager-service`
-   - Skip roles → Done
-5. Create JSON Key:
-   - Click on the service account
-   - Keys tab → Add Key → Create new key → JSON
-   - Download the JSON file
-6. **Copy the service account email** (e.g., `password-manager-service@project-id.iam.gserviceaccount.com`)
+---
 
-### 2. Share Google Sheet with Service Account
+## 📋 Prerequisites
 
-1. Open your Google Sheet
-2. Click **Share**
-3. Paste the service account email
-4. Set permission to **Viewer**
-5. Uncheck "Notify people"
-6. Click Share
+Before deploying, ensure you have:
 
-Now your sheet is private - only accessible by the service account!
+1. **Google Cloud Service Account** with JSON key file
+2. **Google Sheet** with credentials and users data
+3. **Vercel Account** (free tier works)
+4. **Node.js** installed (v18+ recommended)
+5. **Vercel CLI** installed globally
 
-### 3. Deploy to Vercel
+---
 
-#### Option A: Deploy via Vercel Dashboard (Easiest)
+## 🚀 Deployment Guide
 
-1. **Install Vercel CLI** (one-time):
-   ```bash
-   npm install -g vercel
-   ```
+### Step 1: Install Vercel CLI
 
-2. **Login to Vercel**:
-   ```bash
-   vercel login
-   ```
-
-3. **Navigate to backend folder**:
-   ```bash
-   cd backend-server
-   ```
-
-4. **Deploy**:
-   ```bash
-   vercel
-   ```
-   - Follow prompts (press Enter to accept defaults)
-   - When asked "Set up and deploy?", select **Yes**
-
-5. **Add Environment Variables**:
-
-   After deployment, add your service account credentials:
-
-   ```bash
-   vercel env add SERVICE_ACCOUNT_CREDENTIALS
-   ```
-
-   - Select "Production"
-   - Paste the **entire contents** of your service account JSON file (copy from the downloaded JSON)
-   - Press Enter
-
-   Also add the spreadsheet ID:
-   ```bash
-   vercel env add SPREADSHEET_ID
-   ```
-   - Select "Production"
-   - Enter: `1dNODVhGoOdGSsgpS1u8HXjVItrZV_otAtJQv0sW-nNI`
-
-6. **Redeploy with environment variables**:
-   ```bash
-   vercel --prod
-   ```
-
-7. **Copy your deployment URL** (e.g., `https://your-project.vercel.app`)
-
-#### Option B: Deploy via Vercel Website
-
-1. Go to [vercel.com](https://vercel.com) and sign up/login
-2. Click **Add New** → **Project**
-3. Import your Git repository (or upload folder)
-4. Configure:
-   - Framework Preset: **Other**
-   - Root Directory: `backend-server`
-5. Add Environment Variables:
-   - `SERVICE_ACCOUNT_CREDENTIALS`: Paste entire JSON content
-   - `SPREADSHEET_ID`: `1dNODVhGoOdGSsgpS1u8HXjVItrZV_otAtJQv0sW-nNI`
-6. Click **Deploy**
-7. Copy your deployment URL
-
-### 4. Update Extension Configuration
-
-1. Open `config.js` in your extension
-2. Update the backend URL:
-   ```javascript
-   BACKEND_URL: 'https://your-project.vercel.app/api'
-   ```
-3. Reload the extension
-
-## API Endpoints
-
-### POST /api/validate-user
-Authenticate user against Google Sheets Users tab.
-
-**Request:**
-```json
-{
-  "userId": "yash",
-  "password": "yash"
-}
+```bash
+npm install -g vercel
 ```
 
-**Response:**
-```json
-{
-  "success": true,
-  "user": {
-    "userId": "yash",
-    "fullName": "Yash",
-    "email": "yash@example.com"
-  }
-}
+### Step 2: Login to Vercel
+
+```bash
+vercel login
 ```
 
-### GET /api/credentials
-Get all credentials from Google Sheets Credentials tab.
+Follow the prompts to authenticate.
 
-**Response:**
-```json
-{
-  "success": true,
-  "credentials": [
-    {
-      "id": 2,
-      "websiteUrl": "https://app.yaballe.com/",
-      "username": "ABC",
-      "password": "123"
-    }
-  ]
-}
+### Step 3: Deploy Backend
+
+Navigate to the backend directory and deploy:
+
+```bash
+cd backend-server
+vercel
 ```
 
-### GET /api/health
-Health check endpoint.
+- Press **Enter** to accept defaults
+- Select **"Yes"** when asked to setup and deploy
+
+### Step 4: Add Environment Variables
+
+You need to add two environment variables to Vercel:
+
+#### 1. Service Account Credentials
+
+```bash
+vercel env add SERVICE_ACCOUNT_CREDENTIALS
+```
+
+- Select: **Production**
+- Paste: **Entire JSON content** from your service account file
+- Press **Enter**
+
+**Example format:**
+```json
+{"type":"service_account","project_id":"your-project","private_key_id":"...","private_key":"-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n","client_email":"password-manager-service@your-project.iam.gserviceaccount.com","client_id":"...","auth_uri":"https://accounts.google.com/o/oauth2/auth","token_uri":"https://oauth2.googleapis.com/token","auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs","client_x509_cert_url":"..."}
+```
+
+#### 2. Spreadsheet ID
+
+```bash
+vercel env add SPREADSHEET_ID
+```
+
+- Select: **Production**
+- Paste: Your Google Sheet ID (from the URL)
+- Press **Enter**
+
+**Example:**
+```
+1dNODVhGoOdGSsgpS1u8HXjVItrZV_otAtJQv0sW-nNI
+```
+
+### Step 5: Redeploy with Environment Variables
+
+After adding environment variables, redeploy to production:
+
+```bash
+vercel --prod
+```
+
+### Step 6: Copy Deployment URL
+
+Vercel will provide a deployment URL like:
+```
+https://your-project.vercel.app
+```
+
+Use this URL in your extension's `config.js`:
+```javascript
+BACKEND_URL: 'https://your-project.vercel.app/api'
+```
+
+---
+
+## 🔌 API Endpoints
+
+### 1. Health Check
+
+**GET** `/api/health`
+
+Check if the backend is running.
 
 **Response:**
 ```json
@@ -162,40 +123,266 @@ Health check endpoint.
 }
 ```
 
-## Testing Locally
+### 2. Validate User
+
+**POST** `/api/validate-user`
+
+Validate user login credentials from Google Sheets.
+
+**Request Body:**
+```json
+{
+  "userId": "john",
+  "password": "john123"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "user": {
+    "userId": "john",
+    "fullName": "John Doe",
+    "email": "john@company.com"
+  }
+}
+```
+
+**Error Response (401):**
+```json
+{
+  "success": false,
+  "error": "Invalid credentials"
+}
+```
+
+### 3. Get Credentials
+
+**GET** `/api/credentials`
+
+Fetch all credentials from Google Sheets.
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "credentials": [
+    {
+      "id": 2,
+      "websiteUrl": "https://example.com",
+      "username": "admin@company.com",
+      "password": "SecurePass123"
+    },
+    {
+      "id": 3,
+      "websiteUrl": "https://app.service.com",
+      "username": "team@company.com",
+      "password": "AnotherPass456"
+    }
+  ]
+}
+```
+
+**Error Response (500):**
+```json
+{
+  "success": false,
+  "error": "Error message here"
+}
+```
+
+---
+
+## 📊 Google Sheets Format
+
+Your Google Sheet must have the following structure:
+
+### Sheet 1: "Credentials" or "Sheet1"
+
+| Column A       | Column B            | Column C      |
+|----------------|---------------------|---------------|
+| Website URL    | Username/ID         | Password      |
+| https://example.com | admin@company.com | SecurePass123 |
+| https://app.service.com | team@company.com | AnotherPass456 |
+
+### Sheet 2: "Users" or "Sheet2"
+
+| Column A | Column B | Column C        | Column D            |
+|----------|----------|-----------------|---------------------|
+| User ID  | Password | Full Name       | Email               |
+| john     | john123  | John Doe        | john@company.com    |
+| sarah    | sarah456 | Sarah Smith     | sarah@company.com   |
+
+---
+
+## 🔒 Security Features
+
+- **Service Account Auth** - Google Sheet never needs to be public
+- **Read-Only Access** - Service account only has Viewer permission
+- **No API Keys in Extension** - API key stays secure in Vercel
+- **CORS Configured** - Only allows requests from extension
+- **Environment Variables** - Sensitive data stored securely in Vercel
+
+---
+
+## 🔄 Updating the Backend
+
+### Update Code
+
+If you modify any code in `backend-server/`:
 
 ```bash
 cd backend-server
-npm install
-
-# Set environment variables
-export SERVICE_ACCOUNT_CREDENTIALS='{"type":"service_account",...}'
-export SPREADSHEET_ID='1dNODVhGoOdGSsgpS1u8HXjVItrZV_otAtJQv0sW-nNI'
-
-# Run
-npm run dev
+vercel --prod
 ```
 
-Server will run on http://localhost:3000
+### Update Environment Variables
 
-## Security Notes
+If you need to change environment variables:
 
-- ✅ Service account credentials stored securely in Vercel environment variables
-- ✅ Google Sheet can be completely private
-- ✅ Extension never sees service account credentials
-- ✅ Staff members can't access sheet directly
-- ⚠️ Currently allows all CORS origins - update in production to only allow your extension ID
+```bash
+# Remove old variable
+vercel env rm SERVICE_ACCOUNT_CREDENTIALS production
 
-## Troubleshooting
+# Add new variable
+vercel env add SERVICE_ACCOUNT_CREDENTIALS
+# Then paste new value and select Production
 
-**Error: "Service account credentials not found"**
-- Make sure you added `SERVICE_ACCOUNT_CREDENTIALS` environment variable in Vercel
-- Redeploy after adding environment variables
+# Redeploy
+vercel --prod
+```
 
-**Error: "Permission denied"**
-- Make sure you shared the Google Sheet with the service account email
-- Check service account has "Viewer" permission
+---
 
-**Error: "Spreadsheet not found"**
-- Verify `SPREADSHEET_ID` environment variable is correct
-- Check sheet ID in the URL matches the environment variable
+## 🐛 Troubleshooting
+
+### Error: "Permission Denied (403)"
+
+**Cause:** Service account doesn't have access to the Google Sheet.
+
+**Fix:**
+1. Go to your Google Sheet
+2. Click "Share"
+3. Add the service account email (e.g., `password-manager-service@project.iam.gserviceaccount.com`)
+4. Set permission to **Viewer**
+5. Click Share
+
+### Error: "Sheet or range not found (400)"
+
+**Cause:** Sheet tabs are not named correctly.
+
+**Fix:**
+- Ensure you have tabs named **"Credentials"** and **"Users"**
+- Or use default names **"Sheet1"** and **"Sheet2"**
+
+### Error: "Invalid service account credentials"
+
+**Cause:** `SERVICE_ACCOUNT_CREDENTIALS` environment variable is malformed.
+
+**Fix:**
+1. Verify JSON is valid (use jsonlint.com)
+2. Ensure entire JSON is pasted (including curly braces)
+3. Remove and re-add the environment variable:
+   ```bash
+   vercel env rm SERVICE_ACCOUNT_CREDENTIALS production
+   vercel env add SERVICE_ACCOUNT_CREDENTIALS
+   vercel --prod
+   ```
+
+### Error: "Spreadsheet not found"
+
+**Cause:** Wrong `SPREADSHEET_ID` or service account lacks access.
+
+**Fix:**
+1. Verify spreadsheet ID from URL
+2. Ensure sheet is shared with service account
+3. Update `SPREADSHEET_ID` environment variable:
+   ```bash
+   vercel env rm SPREADSHEET_ID production
+   vercel env add SPREADSHEET_ID
+   vercel --prod
+   ```
+
+### Backend Returns 500 Error
+
+**Check Vercel Logs:**
+```bash
+vercel logs
+```
+
+Look for specific error messages to diagnose the issue.
+
+---
+
+## 📁 Project Structure
+
+```
+backend-server/
+├── api/
+│   └── index.js                 # Main API handler
+├── package.json                 # Dependencies
+├── vercel.json                  # Vercel configuration
+└── README.md                    # This file
+```
+
+---
+
+## 🔍 Monitoring
+
+### View Logs
+
+```bash
+vercel logs
+```
+
+### View Deployments
+
+```bash
+vercel ls
+```
+
+### View Environment Variables
+
+```bash
+vercel env ls
+```
+
+---
+
+## 📦 Dependencies
+
+- **googleapis** - Google Sheets API client
+- **Node.js** - Runtime environment
+
+All dependencies are automatically installed by Vercel during deployment.
+
+---
+
+## ⚠️ Important Notes
+
+1. **Keep Service Account JSON Secure** - Never commit to Git
+2. **Use Environment Variables** - Never hardcode credentials
+3. **Monitor Usage** - Check Vercel dashboard for API usage
+4. **Keep Sheet Private** - Only share with service account
+5. **Use Read-Only Permission** - Service account should only be Viewer
+
+---
+
+## 🆘 Support
+
+- **Backend Issues:** Check Vercel logs (`vercel logs`)
+- **Google Sheets Issues:** Verify sheet structure and sharing
+- **Deployment Issues:** See Vercel documentation at vercel.com/docs
+
+---
+
+## 📖 Related Documentation
+
+- [Main Extension README](../README.md)
+- [Vercel Setup Guide](../VERCEL_SETUP_GUIDE.md)
+- [Security Policy](../SECURITY.md)
+
+---
+
+**Made with ❤️ for secure team password management**
