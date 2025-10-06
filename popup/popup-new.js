@@ -120,11 +120,12 @@ document.addEventListener('DOMContentLoaded', async () => {
           userId: response.user.userId,
           fullName: response.user.fullName,
           email: response.user.email,
+          role: response.user.role || 'Staff', // Store user role
           sessionToken: sessionToken,
           loginTime: Date.now()
         });
 
-        console.log('User logged in:', userId);
+        console.log('User logged in:', userId, '- Role:', response.user.role);
         await showCredentialsView();
       } else {
         throw new Error('Invalid user ID or password');
@@ -152,6 +153,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const session = await StorageUtils.getSession();
     if (session) {
       userName.textContent = session.fullName || session.userId;
+
+      // Display role with badge styling
+      const userRoleElement = document.getElementById('userRole');
+      if (userRoleElement && session.role) {
+        const role = session.role;
+        const roleColor = role.toLowerCase() === 'admin' ? '#28a745' : '#6c757d';
+        userRoleElement.innerHTML = `<span style="background: ${roleColor}; color: white; padding: 2px 8px; border-radius: 10px; font-weight: 600;">${role}</span>`;
+      }
     }
 
     // Load credentials

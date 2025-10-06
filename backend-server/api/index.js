@@ -27,7 +27,9 @@ module.exports = async (req, res) => {
   });
 
   try {
-    const path = req.url.replace('/api', '');
+    // Extract path without query parameters
+    const fullPath = req.url.replace('/api', '');
+    const path = fullPath.split('?')[0];
 
     // Route requests
     if (path === '/validate-user' && req.method === 'POST') {
@@ -37,7 +39,7 @@ module.exports = async (req, res) => {
     } else if (path === '/health' && req.method === 'GET') {
       return res.status(200).json({ status: 'ok', message: 'Server is running' });
     } else {
-      return res.status(404).json({ error: 'Not found' });
+      return res.status(404).json({ error: 'Not found', path: path, method: req.method });
     }
   } catch (error) {
     console.error('API Error:', error);
@@ -89,13 +91,13 @@ async function validateUser(req, res) {
       return res.status(400).json({ error: 'Missing userId or password' });
     }
 
-    // Fetch users from Google Sheets
+    // Fetch users from Google Sheets (now with Role column)
     let rows;
     try {
-      rows = await fetchSheetData('Users!A2:D');
+      rows = await fetchSheetData('Users!A2:E');
     } catch (error) {
       // Fallback to Sheet2 if Users tab doesn't exist
-      rows = await fetchSheetData('Sheet2!A2:D');
+      rows = await fetchSheetData('Sheet2!A2:E');
     }
 
     // Find matching user
@@ -103,7 +105,8 @@ async function validateUser(req, res) {
       userId: row[0] || '',
       password: row[1] || '',
       fullName: row[2] || '',
-      email: row[3] || ''
+      email: row[3] || '',
+      role: (row[4] || 'Staff').trim() // Default to Staff if not specified
     }));
 
     const user = users.find(u => u.userId === userId && u.password === password);
@@ -115,7 +118,8 @@ async function validateUser(req, res) {
         user: {
           userId: user.userId,
           fullName: user.fullName,
-          email: user.email
+          email: user.email,
+          role: user.role
         }
       });
     } else {
@@ -128,27 +132,69 @@ async function validateUser(req, res) {
 }
 
 /**
- * Get all credentials
- * GET /api/credentials
+ * Get all credentials with RBAC filtering
+ * GET /api/credentials?userId=xxx&role=xxx&fullName=xxx
  */
 async function getCredentials(req, res) {
   try {
-    // Fetch credentials from Google Sheets
+    const { userId, role, fullName } = req.query;
+
+    if (!userId || !role) {
+      return res.status(400).json({ error: 'Missing userId or role' });
+    }
+
+    // Fetch credentials from Google Sheets (now with VA Name column)
     let rows;
     try {
-      rows = await fetchSheetData('Credentials!A2:C');
+      rows = await fetchSheetData('Credentials!A2:D');
     } catch (error) {
       // Fallback to Sheet1 if Credentials tab doesn't exist
-      rows = await fetchSheetData('Sheet1!A2:C');
+      rows = await fetchSheetData('Sheet1!A2:D');
     }
 
     // Map to credential objects
-    const credentials = rows.map((row, index) => ({
+    let credentials = rows.map((row, index) => ({
       id: index + 2, // Row number in sheet
       websiteUrl: row[0] || '',
       username: row[1] || '',
-      password: row[2] || ''
+      password: row[2] || '',
+      vaName: (row[3] || '').trim() // VA Name for Staff access
     })).filter(cred => cred.websiteUrl && cred.username && cred.password);
+
+    // Fetch Permissions sheet for additional access control
+    let permissions = [];
+    try {
+      const permRows = await fetchSheetData('Permissions!A2:B');
+      permissions = permRows.map(row => ({
+        credentialId: parseInt(row[0]) || 0,
+        allowedUserIds: (row[1] || '').split(',').map(id => id.trim()).filter(id => id)
+      }));
+    } catch (error) {
+      console.log('Permissions sheet not found or empty, using VA Name only');
+    }
+
+    // Apply RBAC filtering
+    if (role.toLowerCase() === 'admin') {
+      // Admin gets all credentials
+      console.log(`Admin access: ${userId} gets all ${credentials.length} credentials`);
+    } else {
+      // Staff role: filter by VA Name or Permissions
+      credentials = credentials.filter(cred => {
+        // Check if VA Name matches user's full name
+        const nameMatch = cred.vaName && fullName &&
+                         cred.vaName.toLowerCase() === fullName.toLowerCase();
+
+        // Check if user is in Permissions list for this credential
+        const permMatch = permissions.some(perm =>
+          perm.credentialId === cred.id &&
+          perm.allowedUserIds.includes(userId)
+        );
+
+        return nameMatch || permMatch;
+      });
+
+      console.log(`Staff access: ${userId} (${fullName}) gets ${credentials.length} credentials`);
+    }
 
     return res.status(200).json({
       success: true,

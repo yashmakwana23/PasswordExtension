@@ -93,11 +93,13 @@ This extension requires configuration before use. Choose one of two setup option
    Column A: Website URL
    Column B: Username/ID
    Column C: Password
+   Column D: VA Name (Staff assigned - optional)
 
    Example:
-   Row 1: Website URL              | Username/ID           | Password
-   Row 2: https://example.com      | admin@company.com     | SecurePass123
-   Row 3: https://app.service.com  | team@company.com      | AnotherPass456
+   Row 1: Website URL              | Username/ID           | Password      | VA Name
+   Row 2: https://example.com      | admin@company.com     | SecurePass123 | John Doe
+   Row 3: https://app.service.com  | team@company.com      | AnotherPass456| Sarah Smith
+   Row 4: https://shared.site.com  | shared@company.com    | SharedPass789 |
    ```
 
 3. **Add "Users" tab:**
@@ -106,21 +108,36 @@ This extension requires configuration before use. Choose one of two setup option
    Column B: Password
    Column C: Full Name
    Column D: Email
+   Column E: Role (Admin/Staff)
 
    Example:
-   Row 1: User ID  | Password    | Full Name   | Email
-   Row 2: john     | john123     | John Doe    | john@company.com
-   Row 3: sarah    | sarah456    | Sarah Smith | sarah@company.com
+   Row 1: User ID  | Password    | Full Name   | Email               | Role
+   Row 2: admin1   | admin123    | Admin User  | admin@company.com   | Admin
+   Row 3: john     | john123     | John Doe    | john@company.com    | Staff
+   Row 4: sarah    | sarah456    | Sarah Smith | sarah@company.com   | Staff
    ```
 
-4. **Share with Service Account:**
+4. **Add "Permissions" tab (optional - for fine-grained access):**
+   ```
+   Column A: Credential ID (row number from Credentials sheet)
+   Column B: Allowed User IDs (comma-separated)
+
+   Example:
+   Row 1: Credential ID | Allowed User IDs
+   Row 2: 2             | john,sarah
+   Row 3: 4             | mike,john
+
+   This allows specific users to access credentials beyond VA Name matching
+   ```
+
+5. **Share with Service Account:**
    - Click "Share" button
    - Paste the service account email
    - Set permission to **Viewer**
    - Uncheck "Notify people"
    - Click Share
 
-5. **Copy Spreadsheet ID:**
+6. **Copy Spreadsheet ID:**
    - From URL: `https://docs.google.com/spreadsheets/d/[SPREADSHEET_ID]/edit`
    - Copy the `SPREADSHEET_ID` part
 
@@ -300,6 +317,60 @@ PasswordExtension/
 
 ---
 
+## 🔐 Role-Based Access Control (RBAC)
+
+This extension now supports role-based access control to manage credential visibility per user.
+
+### How RBAC Works
+
+**Two Roles:**
+- **Admin** - Full access to ALL credentials in the sheet
+- **Staff** - Limited access based on assignment
+
+**Staff Access Rules:**
+1. **VA Name Matching**: Staff can access credentials where the "VA Name" column (Column D in Credentials sheet) matches their Full Name
+2. **Permissions Override**: Staff can also access credentials listed in the Permissions sheet where their User ID is included
+3. **Combined Access**: Staff gets credentials from BOTH rules above
+
+**Example:**
+
+If John Doe (Staff) logs in:
+- ✅ Can access credentials with VA Name = "John Doe"
+- ✅ Can access credentials where his user ID "john" is in Permissions sheet
+- ❌ Cannot access other credentials
+
+If Admin User (Admin) logs in:
+- ✅ Can access ALL credentials (no filtering)
+
+### Setting Up RBAC
+
+1. **Add Role column to Users sheet** (Column E):
+   - Set to "Admin" or "Staff"
+   - Defaults to "Staff" if blank
+
+2. **Add VA Name to Credentials** (Column D):
+   - Enter the full name of the staff member who should access this credential
+   - Leave blank for credentials that should be Admin-only or managed via Permissions
+
+3. **Optional: Create Permissions sheet** for fine-grained control:
+   - Column A: Credential ID (row number from Credentials, e.g., 2, 3, 4)
+   - Column B: Comma-separated User IDs (e.g., "john,sarah,mike")
+
+### RBAC Best Practices
+
+✅ **Do:**
+- Assign Admin role only to trusted administrators
+- Use VA Name for default staff assignments (easier to manage)
+- Use Permissions sheet for special cases (shared credentials, temporary access)
+- Regularly audit credential assignments
+
+❌ **Don't:**
+- Give everyone Admin access
+- Leave sensitive credentials without VA Name or Permissions (they'll be Admin-only)
+- Share credentials between too many users (use separate accounts if possible)
+
+---
+
 ## 🔒 Security Features
 
 ### Built-in Security
@@ -310,6 +381,7 @@ PasswordExtension/
 - **Content Security Policy** - Prevents unauthorized connections
 - **Input Sanitization** - XSS protection
 - **Service Account Auth** - Least-privilege backend access
+- **Role-Based Access Control** - Granular credential access management
 
 ### Best Practices
 
@@ -478,10 +550,16 @@ A: No. Passwords are encrypted and only decrypted when filling forms.
 A: Redeploy using the same service account and spreadsheet ID. No data loss.
 
 **Q: How do I add a new staff member?**
-A: Add their credentials to the Users tab in Google Sheet.
+A: Add their credentials to the Users tab in Google Sheet with appropriate Role (Admin/Staff).
 
 **Q: How do I revoke access?**
 A: Remove their row from the Users tab. They can't login anymore.
+
+**Q: How do I assign credentials to a staff member?**
+A: Either add their Full Name to the "VA Name" column in Credentials sheet, or add their User ID to the Permissions sheet for specific credentials.
+
+**Q: What's the difference between VA Name and Permissions sheet?**
+A: VA Name is simpler for default assignments (one staff per credential). Permissions sheet allows multiple users to access the same credential and is better for shared access.
 
 **Q: Is the Google Sheet required to be public?**
 A: With Vercel backend: NO (private). With direct API: YES (public).

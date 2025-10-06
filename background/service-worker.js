@@ -208,12 +208,19 @@ async function refreshCredentialsCache() {
       return { success: true, count: 0 };
     }
 
+    // Get user session for RBAC
+    const session = await StorageUtils.getSession();
+
     // Fetch fresh credentials via backend or direct API
     let credentials;
     if (CONFIG.BACKEND_URL) {
-      // Use backend API
+      // Use backend API with RBAC filtering
       const backendApi = new BackendAPI(CONFIG.BACKEND_URL);
-      credentials = await backendApi.fetchCredentials();
+      credentials = await backendApi.fetchCredentials(
+        session.userId,
+        session.role || 'Staff',
+        session.fullName
+      );
     } else {
       // Fallback to direct Google Sheets API
       const sheetsApi = new SheetsAPI(CONFIG.SHEETS_API_KEY, CONFIG.CREDENTIALS_SPREADSHEET_ID);
@@ -221,7 +228,6 @@ async function refreshCredentialsCache() {
     }
 
     // Encrypt and cache
-    const session = await StorageUtils.getSession();
     const key = await CryptoUtils.generateKey(session.sessionToken);
 
     const encryptedCredentials = await Promise.all(
@@ -292,7 +298,7 @@ function normalizeUrl(url) {
 }
 
 /**
- * Fetch ALL credentials (for popup list view)
+ * Fetch ALL credentials (for popup list view) with RBAC filtering
  */
 async function fetchAllCredentials() {
   try {
@@ -307,6 +313,9 @@ async function fetchAllCredentials() {
       return { success: false, error: 'Configuration error' };
     }
 
+    // Get user session for RBAC
+    const session = await StorageUtils.getSession();
+
     // Check cache first
     let credentials = await StorageUtils.getCachedCredentials();
 
@@ -315,7 +324,11 @@ async function fetchAllCredentials() {
       // Use backend API if configured
       if (CONFIG.BACKEND_URL) {
         const backendApi = new BackendAPI(CONFIG.BACKEND_URL);
-        credentials = await backendApi.fetchCredentials();
+        credentials = await backendApi.fetchCredentials(
+          session.userId,
+          session.role || 'Staff',
+          session.fullName
+        );
       } else {
         // Fallback to direct Google Sheets API
         const sheetsApi = new SheetsAPI(CONFIG.SHEETS_API_KEY, CONFIG.CREDENTIALS_SPREADSHEET_ID);
@@ -323,7 +336,6 @@ async function fetchAllCredentials() {
       }
 
       // Encrypt and cache credentials
-      const session = await StorageUtils.getSession();
       const key = await CryptoUtils.generateKey(session.sessionToken);
 
       const encryptedCredentials = await Promise.all(

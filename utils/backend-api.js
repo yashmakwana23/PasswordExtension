@@ -40,12 +40,21 @@ class BackendAPI {
   }
 
   /**
-   * Fetch all credentials from backend
+   * Fetch all credentials from backend with RBAC filtering
+   * @param {string} userId - User ID for permission filtering
+   * @param {string} role - User role (Admin/Staff)
+   * @param {string} fullName - User's full name for VA Name matching
    * @returns {Promise<Array>} - Array of credential objects
    */
-  async fetchCredentials() {
+  async fetchCredentials(userId, role, fullName) {
     try {
-      const response = await fetch(`${this.backendUrl}/credentials`, {
+      const params = new URLSearchParams({
+        userId: userId || '',
+        role: role || 'Staff',
+        fullName: fullName || ''
+      });
+
+      const response = await fetch(`${this.backendUrl}/credentials?${params}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
