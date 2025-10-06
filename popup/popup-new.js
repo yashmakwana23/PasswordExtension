@@ -1,16 +1,16 @@
 /**
- * Simplified popup - Login then show all credentials with search
+ * Enhanced Popup - Modern password manager interface
  */
 
 document.addEventListener('DOMContentLoaded', async () => {
   const notAuthView = document.getElementById('notAuthView');
   const authView = document.getElementById('authView');
-  const loginBtn = document.getElementById('loginBtn');
   const logoutBtn = document.getElementById('logoutBtn');
   const refreshBtn = document.getElementById('refreshBtn');
   const userName = document.getElementById('userName');
   const searchInput = document.getElementById('searchInput');
   const credentialsContainer = document.getElementById('credentialsContainer');
+  const inlineLoginForm = document.getElementById('inlineLoginForm');
 
   let allCredentials = [];
   let isLoggingIn = false;
@@ -29,56 +29,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   /**
-   * Show login view with inline form
+   * Show login view with enhanced form
    */
   function showLoginView() {
-    notAuthView.innerHTML = `
-      <div class="popup-header">
-        <img src="../icons/icon48.png" alt="Logo" class="logo">
-        <h2>Login Required</h2>
-      </div>
-      <div class="popup-body" style="padding: 20px;">
-        <form id="inlineLoginForm">
-          <div class="form-group" style="margin-bottom: 16px;">
-            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;">User ID</label>
-            <input
-              type="text"
-              id="loginUserId"
-              style="width: 100%; padding: 10px; border: 2px solid #e1e4e8; border-radius: 6px; font-size: 14px;"
-              placeholder="Enter your user ID"
-              autocomplete="username"
-              required
-            >
-          </div>
-          <div class="form-group" style="margin-bottom: 20px;">
-            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;">Password</label>
-            <input
-              type="password"
-              id="loginPassword"
-              style="width: 100%; padding: 10px; border: 2px solid #e1e4e8; border-radius: 6px; font-size: 14px;"
-              placeholder="Enter your password"
-              autocomplete="current-password"
-              required
-            >
-          </div>
-          <div id="loginError" style="display: none; padding: 10px; background: #fee; color: #c33; border-radius: 6px; margin-bottom: 16px; font-size: 13px;"></div>
-          <button type="submit" class="btn btn-primary" id="loginSubmitBtn" style="width: 100%;">
-            <span id="loginBtnText">Login</span>
-            <span id="loginBtnSpinner" class="spinner" style="display: none; width: 16px; height: 16px; border-width: 2px;"></span>
-          </button>
-        </form>
-      </div>
-    `;
-
     notAuthView.style.display = 'block';
     authView.style.display = 'none';
 
     // Reset login flag
     isLoggingIn = false;
-
-    // Setup login form handler
-    const loginForm = document.getElementById('inlineLoginForm');
-    loginForm.addEventListener('submit', handleLogin);
 
     // Focus on user ID field
     setTimeout(() => {
@@ -88,7 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   /**
-   * Handle login submission
+   * Handle login submission with enhanced UX
    */
   async function handleLogin(e) {
     e.preventDefault();
@@ -126,7 +84,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           userId: response.user.userId,
           fullName: response.user.fullName,
           email: response.user.email,
-          role: response.user.role || 'Staff', // Store user role
+          role: response.user.role || 'User',
           sessionToken: sessionToken,
           loginTime: Date.now()
         });
@@ -134,13 +92,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log('User logged in:', userId, '- Role:', response.user.role);
         await showCredentialsView();
       } else {
-        throw new Error('Invalid user ID or password');
+        throw new Error('Invalid credentials. Please try again.');
       }
 
     } catch (error) {
       console.error('Login error:', error);
-      loginError.textContent = error.message || 'Login failed';
+      loginError.textContent = error.message || 'Login failed. Please check your credentials.';
       loginError.style.display = 'block';
+      
+      // Shake animation for error
+      loginSubmitBtn.style.animation = 'shake 0.5s';
+      setTimeout(() => {
+        loginSubmitBtn.style.animation = '';
+      }, 500);
+      
       loginSubmitBtn.disabled = false;
       loginBtnText.style.display = 'inline';
       loginBtnSpinner.style.display = 'none';
@@ -149,41 +114,46 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   /**
-   * Show credentials view
+   * Show credentials view with enhanced UI
    */
   async function showCredentialsView() {
     notAuthView.style.display = 'none';
     authView.style.display = 'block';
 
-    // Show user info
+    // Show user info with enhanced display
     const session = await StorageUtils.getSession();
     if (session) {
       userName.textContent = session.fullName || session.userId;
 
-      // Display role with badge styling
+      // Display role with enhanced badge styling
       const userRoleElement = document.getElementById('userRole');
       if (userRoleElement && session.role) {
         const role = session.role;
-        const roleColor = role.toLowerCase() === 'admin' ? '#28a745' : '#6c757d';
-        userRoleElement.innerHTML = `<span style="background: ${roleColor}; color: white; padding: 2px 8px; border-radius: 10px; font-weight: 600;">${role}</span>`;
+        const roleColor = role.toLowerCase() === 'admin' ? '#10b981' : '#8b5cf6';
+        userRoleElement.innerHTML = `<span style="background: ${roleColor}; color: white; padding: 2px 10px; border-radius: 20px; font-weight: 600; font-size: 11px; letter-spacing: 0.5px;">${role.toUpperCase()}</span>`;
       }
     }
 
     // Load credentials
     await loadAllCredentials();
 
-    // Setup search
-    searchInput.addEventListener('input', filterCredentials);
+    // Setup search with enhanced functionality
+    searchInput.addEventListener('input', debounce(filterCredentials, 300));
+    
+    // Focus on search input
+    setTimeout(() => {
+      searchInput.focus();
+    }, 100);
   }
 
   /**
-   * Load all credentials from backend
+   * Load all credentials from backend with enhanced loading
    */
   async function loadAllCredentials() {
     credentialsContainer.innerHTML = `
       <div class="loading-container">
         <div class="spinner"></div>
-        <p>Loading credentials...</p>
+        <p>Decrypting and loading your credentials...</p>
       </div>
     `;
 
@@ -202,15 +172,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.error('Error loading credentials:', error);
       credentialsContainer.innerHTML = `
         <div class="no-results">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.3; margin-bottom: 12px;">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
           <p>Failed to load credentials</p>
-          <p style="font-size: 12px; margin-top: 8px;">${error.message}</p>
+          <p style="font-size: 12px; margin-top: 8px; color: #94a3b8;">${error.message}</p>
         </div>
       `;
     }
   }
 
   /**
-   * Display credentials list
+   * Display credentials list with enhanced UI
    */
   function displayCredentials(credentials) {
     if (credentials.length === 0) {
@@ -221,33 +195,46 @@ document.addEventListener('DOMContentLoaded', async () => {
             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
           </svg>
           <p>No credentials found</p>
+          <p style="font-size: 13px; margin-top: 8px; color: #94a3b8;">Add new credentials to get started</p>
         </div>
       `;
       return;
     }
 
-    credentialsContainer.innerHTML = credentials.map(cred => `
-      <div class="credential-card">
-        <div class="credential-icon">${getInitial(cred.websiteUrl || cred.username)}</div>
-        <div class="credential-details">
-          <div class="credential-website">${escapeHtml(cred.websiteUrl)}</div>
-          <div class="credential-username">${escapeHtml(cred.username)}</div>
+    credentialsContainer.innerHTML = credentials.map(cred => {
+      // Extract domain for icon
+      const domainMatch = cred.websiteUrl?.match(/(?:https?:\/\/)?(?:www\.)?([^\/\.]+)/);
+      const domainInitial = domainMatch ? domainMatch[1].charAt(0).toUpperCase() : (cred.username?.charAt(0).toUpperCase() || '?');
+      
+      return `
+        <div class="credential-card" data-id="${cred.id}">
+          <div class="credential-icon">${domainInitial}</div>
+          <div class="credential-details">
+            <div class="credential-website">${escapeHtml(cred.websiteUrl || 'Unknown Website')}</div>
+            <div class="credential-username">${escapeHtml(cred.username || 'No username')}</div>
+          </div>
+          <button class="fill-btn" data-id="${cred.id}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            Fill
+          </button>
         </div>
-        <button class="fill-btn" data-id="${cred.id}">Fill Password</button>
-      </div>
-    `).join('');
+      `;
+    }).join('');
 
-    // Add click handlers to Fill Password buttons
-    document.querySelectorAll('.fill-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const credId = parseInt(btn.dataset.id);
+    // Add click handlers to credential cards and Fill buttons
+    document.querySelectorAll('.credential-card, .fill-btn').forEach(element => {
+      element.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const credId = parseInt(element.dataset.id);
         fillPassword(credId);
       });
     });
   }
 
   /**
-   * Filter credentials based on search
+   * Filter credentials based on search with enhanced matching
    */
   function filterCredentials() {
     const query = searchInput.value.toLowerCase().trim();
@@ -260,19 +247,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     const filtered = allCredentials.filter(cred => {
       const website = (cred.websiteUrl || '').toLowerCase();
       const username = (cred.username || '').toLowerCase();
-      return website.includes(query) || username.includes(query);
+      const domainMatch = website.match(/(?:https?:\/\/)?(?:www\.)?([^\/\.]+)/);
+      const domain = domainMatch ? domainMatch[1] : '';
+      
+      return website.includes(query) || 
+             username.includes(query) || 
+             domain.includes(query);
     });
 
     displayCredentials(filtered);
   }
 
   /**
-   * Fill password on active tab
+   * Fill password on active tab with enhanced UX
    */
   async function fillPassword(credId) {
     console.log('Fill password for credential:', credId);
 
     try {
+      // Show loading state on button
+      const fillBtn = document.querySelector(`.fill-btn[data-id="${credId}"]`);
+      const originalHTML = fillBtn ? fillBtn.innerHTML : '';
+      if (fillBtn) {
+        fillBtn.innerHTML = '<span class="spinner-inline" style="width: 14px; height: 14px; border-width: 2px;"></span>';
+        fillBtn.disabled = true;
+      }
+
       // Get full credential with password
       const response = await chrome.runtime.sendMessage({
         action: 'getCredentialForAutofill',
@@ -292,8 +292,8 @@ document.addEventListener('DOMContentLoaded', async () => {
               password: response.credential.password
             });
 
-            showToast('✓ Password filled');
-            setTimeout(() => window.close(), 800);
+            showToast('✓ Password filled successfully', 'success');
+            setTimeout(() => window.close(), 1000);
           } catch (contentScriptError) {
             // Content script not loaded - inject it first
             console.log('Content script not found, injecting...');
@@ -314,60 +314,103 @@ document.addEventListener('DOMContentLoaded', async () => {
                 password: response.credential.password
               });
 
-              showToast('✓ Password filled');
-              setTimeout(() => window.close(), 800);
+              showToast('✓ Password filled successfully', 'success');
+              setTimeout(() => window.close(), 1000);
             } catch (injectError) {
               console.error('Failed to inject content script:', injectError);
-              showToast('✗ Cannot fill on this page');
+              showToast('✗ Cannot fill on this page', 'error');
             }
           }
         } else {
-          showToast('✗ No active tab found');
+          showToast('✗ No active tab found', 'error');
         }
       } else {
-        showToast('✗ Failed to get credentials');
+        showToast('✗ Failed to get credentials', 'error');
       }
     } catch (error) {
       console.error('Error filling password:', error);
-      showToast('✗ Error: ' + error.message);
+      showToast('✗ Error: ' + error.message, 'error');
+    } finally {
+      // Restore button state
+      const fillBtn = document.querySelector(`.fill-btn[data-id="${credId}"]`);
+      if (fillBtn) {
+        fillBtn.innerHTML = originalHTML;
+        fillBtn.disabled = false;
+      }
     }
   }
 
   /**
-   * Show toast notification
+   * Show enhanced toast notification
    */
-  function showToast(message) {
+  function showToast(message, type = 'info') {
+    // Remove any existing toast
+    const existingToast = document.getElementById('toastNotification');
+    if (existingToast) {
+      existingToast.remove();
+    }
+
     const toast = document.createElement('div');
+    toast.id = 'toastNotification';
     toast.style.cssText = `
       position: fixed;
-      bottom: 16px;
-      left: 16px;
-      right: 16px;
-      background: #333;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#333'};
       color: white;
-      padding: 12px;
-      border-radius: 6px;
-      font-size: 13px;
+      padding: 14px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
       text-align: center;
       z-index: 10000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       animation: slideUp 0.3s ease-out;
+      min-width: 250px;
+      max-width: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     `;
-    toast.textContent = message;
+    toast.innerHTML = `
+      ${type === 'success' ? '✓' : type === 'error' ? '✗' : 'ℹ️'} 
+      ${message}
+    `;
     document.body.appendChild(toast);
 
-    setTimeout(() => {
-      toast.remove();
-    }, 2000);
-  }
+    // Add animation styles if not present
+    if (!document.querySelector('#toastStyles')) {
+      const style = document.createElement('style');
+      style.id = 'toastStyles';
+      style.textContent = `
+        @keyframes slideUp {
+          from {
+            opacity: 0;
+            transform: translateX(-50%) translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+          }
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          20%, 60% { transform: translateX(-5px); }
+          40%, 80% { transform: translateX(5px); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
 
-  /**
-   * Get initial letter for icon
-   */
-  function getInitial(text) {
-    if (!text) return '?';
-    // Extract domain from URL or use first letter
-    const match = text.match(/(?:https?:\/\/)?(?:www\.)?([^\/\.]+)/);
-    return match ? match[1].charAt(0).toUpperCase() : text.charAt(0).toUpperCase();
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(-50%) translateY(20px)';
+      setTimeout(() => {
+        toast.remove();
+      }, 300);
+    }, 3000);
   }
 
   /**
@@ -380,32 +423,66 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   /**
-   * Refresh credentials
+   * Debounce function for search
+   */
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  /**
+   * Refresh credentials with enhanced UX
    */
   refreshBtn.addEventListener('click', async () => {
+    const originalHTML = refreshBtn.innerHTML;
+    refreshBtn.innerHTML = '<span class="spinner-inline" style="width: 16px; height: 16px; border-width: 2px;"></span>';
     refreshBtn.disabled = true;
-    refreshBtn.style.opacity = '0.5';
 
     try {
       await chrome.runtime.sendMessage({ action: 'refreshCredentials' });
       await loadAllCredentials();
-      showToast('✓ Credentials refreshed');
+      showToast('✓ Credentials refreshed successfully', 'success');
     } catch (error) {
-      showToast('✗ Failed to refresh');
+      showToast('✗ Failed to refresh credentials', 'error');
     } finally {
-      refreshBtn.disabled = false;
-      refreshBtn.style.opacity = '1';
+      setTimeout(() => {
+        refreshBtn.innerHTML = originalHTML;
+        refreshBtn.disabled = false;
+      }, 1000);
     }
   });
 
   /**
-   * Logout
+   * Logout with enhanced UX
    */
   logoutBtn.addEventListener('click', async () => {
-    await chrome.runtime.sendMessage({ action: 'logout' });
-    isLoggingIn = false; // Reset login flag
-    showLoginView();
+    try {
+      const originalHTML = logoutBtn.innerHTML;
+      logoutBtn.innerHTML = '<span class="spinner-inline" style="width: 16px; height: 16px; border-width: 2px;"></span>';
+      
+      await chrome.runtime.sendMessage({ action: 'logout' });
+      isLoggingIn = false; // Reset login flag
+      
+      setTimeout(() => {
+        showLoginView();
+        showToast('✓ Logged out successfully', 'success');
+      }, 800);
+    } catch (error) {
+      showToast('✗ Logout failed', 'error');
+    }
   });
+
+  // Handle login form submission
+  if (inlineLoginForm) {
+    inlineLoginForm.addEventListener('submit', handleLogin);
+  }
 
   // Initialize
   init();

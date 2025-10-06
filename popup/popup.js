@@ -73,11 +73,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tabs.length > 0) {
         currentTab = tabs[0];
-        tabTitle.textContent = currentTab.title || 'Unknown Page';
-        tabUrl.textContent = new URL(currentTab.url).hostname;
+        tabTitle.textContent = currentTab.title || 'Current Page';
+        tabUrl.textContent = currentTab.url ? new URL(currentTab.url).hostname : 'Unknown';
       }
     } catch (error) {
       console.error('Error loading current tab:', error);
+      tabTitle.textContent = 'Error loading page';
+      tabUrl.textContent = 'Please refresh';
     }
   }
 
@@ -123,7 +125,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // If Google Sheets not configured, show friendly message instead of error
       if (error.message.includes('not configured') || error.message.includes('Extension not configured')) {
-        credentialsList.innerHTML = '<div class="loading">Google Sheets not configured yet. Configure in Options to use autofill.</div>';
+        credentialsList.innerHTML = `
+          <div style="text-align: center; padding: 24px;">
+            <div style="font-size: 14px; color: #64748b; margin-bottom: 12px;">Google Sheets not configured</div>
+            <div style="font-size: 13px; color: #94a3b8;">Configure in Options to use autofill</div>
+          </div>
+        `;
         noCredentials.style.display = 'none';
       } else {
         showStatus('Failed to load credentials: ' + error.message, true);
@@ -142,8 +149,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     credentials.forEach(cred => {
       const item = document.createElement('div');
       item.className = 'credential-item';
+      
+      // Extract domain for icon
+      const domainMatch = cred.websiteUrl?.match(/(?:https?:\/\/)?(?:www\.)?([^\/\.]+)/);
+      const domainInitial = domainMatch ? domainMatch[1].charAt(0).toUpperCase() : (cred.username?.charAt(0).toUpperCase() || '?');
+      
       item.innerHTML = `
-        <div class="credential-icon">${cred.username.charAt(0).toUpperCase()}</div>
+        <div class="credential-icon">${domainInitial}</div>
         <div class="credential-info">
           <div class="credential-username">${escapeHtml(cred.username)}</div>
           <div class="credential-url">${escapeHtml(cred.websiteUrl)}</div>
@@ -159,6 +171,8 @@ document.addEventListener('DOMContentLoaded', async () => {
    */
   async function autofillCredential(credentialId) {
     try {
+      showStatus('Filling credentials...');
+      
       // Get decrypted credential
       const response = await chrome.runtime.sendMessage({
         action: 'getCredentialForAutofill',
@@ -175,14 +189,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         credential: response.credential
       });
 
-      showStatus('Credential autofilled successfully');
-
+      showStatus('✓ Credential autofilled successfully');
+      
       // Close popup after brief delay
-      setTimeout(() => window.close(), 1000);
+      setTimeout(() => window.close(), 1500);
 
     } catch (error) {
       console.error('Error autofilling credential:', error);
-      showStatus('Failed to autofill: ' + error.message, true);
+      showStatus('✗ Failed to autofill: ' + error.message, true);
     }
   }
 
@@ -202,14 +216,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         throw new Error(response.error);
       }
 
-      showStatus(`Refreshed ${response.count} credentials`);
+      showStatus(`✓ Refreshed ${response.count} credentials`);
 
       // Reload credentials
       await loadCredentials();
 
     } catch (error) {
       console.error('Error refreshing credentials:', error);
-      showStatus('Failed to refresh: ' + error.message, true);
+      showStatus('✗ Failed to refresh: ' + error.message, true);
     } finally {
       refreshBtn.disabled = false;
     }
@@ -220,13 +234,14 @@ document.addEventListener('DOMContentLoaded', async () => {
    */
   async function triggerManualFill() {
     try {
+      showStatus('Triggering autofill...');
       await chrome.tabs.sendMessage(currentTab.id, {
         action: 'triggerAutofill'
       });
-      window.close();
+      setTimeout(() => window.close(), 1000);
     } catch (error) {
       console.error('Error triggering autofill:', error);
-      showStatus('Failed to trigger autofill', true);
+      showStatus('✗ Failed to trigger autofill', true);
     }
   }
 
@@ -248,7 +263,7 @@ document.addEventListener('DOMContentLoaded', async () => {
    */
   function escapeHtml(text) {
     const div = document.createElement('div');
-    div.textContent = text;
+    div.textContent = text || '';
     return div.innerHTML;
   }
 
@@ -258,13 +273,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function handleLogout() {
     try {
       const response = await chrome.runtime.sendMessage({ action: 'logout' });
+      showStatus('✓ Logging out...', false);
 
       if (response.success) {
-        showNotAuthView();
+        setTimeout(() => {
+          showNotAuthView();
+          showStatus('✓ Logged out successfully');
+        }, 800);
       }
     } catch (error) {
       console.error('Error logging out:', error);
-      showStatus('Logout failed', true);
+      showStatus('✗ Logout failed', true);
     }
   }
 
