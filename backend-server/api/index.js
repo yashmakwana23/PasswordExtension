@@ -180,9 +180,12 @@ async function getCredentials(req, res) {
     } else {
       // Staff role: filter by VA Name or Permissions
       credentials = credentials.filter(cred => {
-        // Check if VA Name matches user's full name
-        const nameMatch = cred.vaName && fullName &&
-                         cred.vaName.toLowerCase() === fullName.toLowerCase();
+        // Check if VA Name matches user's full name (supports comma-separated names)
+        let nameMatch = false;
+        if (cred.vaName && fullName) {
+          const vaNames = cred.vaName.split(',').map(name => name.trim().toLowerCase());
+          nameMatch = vaNames.includes(fullName.toLowerCase());
+        }
 
         // Check if user is in Permissions list for this credential
         const permMatch = permissions.some(perm =>
