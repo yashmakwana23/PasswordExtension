@@ -73,12 +73,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     notAuthView.style.display = 'block';
     authView.style.display = 'none';
 
+    // Reset login flag
+    isLoggingIn = false;
+
     // Setup login form handler
     const loginForm = document.getElementById('inlineLoginForm');
     loginForm.addEventListener('submit', handleLogin);
 
     // Focus on user ID field
-    setTimeout(() => document.getElementById('loginUserId').focus(), 100);
+    setTimeout(() => {
+      const userIdField = document.getElementById('loginUserId');
+      if (userIdField) userIdField.focus();
+    }, 100);
   }
 
   /**
@@ -397,6 +403,7 @@ document.addEventListener('DOMContentLoaded', async () => {
    */
   logoutBtn.addEventListener('click', async () => {
     await chrome.runtime.sendMessage({ action: 'logout' });
+    isLoggingIn = false; // Reset login flag
     showLoginView();
   });
 
