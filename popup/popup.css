@@ -336,7 +336,7 @@ body {
 }
 
 .credential-username::before {
-  content: "👤";
+  content: "";
   font-size: 14px;
 }
 
@@ -352,7 +352,7 @@ body {
 }
 
 .credential-url::before {
-  content: "🌐";
+  content: "";
   font-size: 12px;
 }
 
@@ -543,4 +543,111 @@ body {
   padding: 14px;
   font-size: 15px;
   font-weight: 600;
+}
+
+/* Enhanced Login Screen */
+.login-container {
+  padding: 40px 28px 32px;
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  min-height: 500px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.login-logo {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 20px;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  border-radius: var(--radius-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+  border: 2px solid rgba(79, 70, 229, 0.1);
+}
+
+.login-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+
+.login-subtitle {
+  font-size: 14px;
+  color: var(--gray-500);
+  font-weight: 400;
+}
+
+.login-form {
+  margin-bottom: 24px;
+}
+
+.login-form .form-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-weight: 600;
+  color: var(--gray-700);
+  font-size: 13px;
+}
+
+.login-form .form-group label svg {
+  opacity: 0.7;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 14px 20px;
+  font-size: 15px;
+  margin-top: 8px;
+}
+
+.login-btn #loginBtnText {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.login-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--gray-500);
+  padding: 16px;
+  background: rgba(79, 70, 229, 0.05);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(79, 70, 229, 0.1);
+}
+
+.login-footer svg {
+  opacity: 0.6;
+}
+
+/* User Avatar in Header */
+.user-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }

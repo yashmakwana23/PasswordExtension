@@ -104,18 +104,19 @@
       transform: translateY(0);
     }
     .credential-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
       background: linear-gradient(135deg, var(--primary-500) 0%, var(--secondary-500) 100%);
       color: white;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 700;
-      font-size: 18px;
+      font-weight: 600;
+      font-size: 11px;
       flex-shrink: 0;
       box-shadow: var(--shadow-sm);
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
     }
     .credential-details {
       flex: 1;
@@ -134,7 +135,7 @@
       gap: 6px;
     }
     .credential-website::before {
-      content: "🌐";
+      content: "";
       font-size: 14px;
     }
     .credential-username {
@@ -148,7 +149,7 @@
       gap: 6px;
     }
     .credential-username::before {
-      content: "👤";
+      content: "";
       font-size: 12px;
     }
     .no-results {
@@ -243,20 +244,33 @@
 <body>
   <!-- Not Authenticated View -->
   <div id="notAuthView" style="display: none;">
-    <div class="popup-header">
-      <div class="logo">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1Z" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M12 12C13.6569 12 15 10.6569 15 9C15 7.34315 13.6569 6 12 6C10.3431 6 9 7.34315 9 9C9 10.6569 10.3431 12 12 12Z" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M12 12V16" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+    <div class="login-container">
+      <div class="login-header">
+        <div class="login-logo">
+          <svg width="56" height="56" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1Z" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 12C13.6569 12 15 10.6569 15 9C15 7.34315 13.6569 6 12 6C10.3431 6 9 7.34315 9 9C9 10.6569 10.3431 12 12 12Z" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 12V16" stroke="url(#gradient1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#4f46e5;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <h1 class="login-title">Secure Vault</h1>
+        <p class="login-subtitle">Unlock your password manager</p>
       </div>
-      <h2>Secure Password Manager</h2>
-    </div>
-    <div class="popup-body">
-      <form id="inlineLoginForm">
+      <form id="inlineLoginForm" class="login-form">
         <div class="form-group">
-          <label for="loginUserId">User ID</label>
+          <label for="loginUserId">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            User ID
+          </label>
           <input
             type="text"
             id="loginUserId"
@@ -266,7 +280,13 @@
           >
         </div>
         <div class="form-group">
-          <label for="loginPassword">Master Password</label>
+          <label for="loginPassword">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            Master Password
+          </label>
           <input
             type="password"
             id="loginPassword"
@@ -276,8 +296,13 @@
           >
         </div>
         <div id="loginError" style="display: none;"></div>
-        <button type="submit" class="btn btn-primary" id="loginSubmitBtn">
-          <span id="loginBtnText">Unlock Vault</span>
+        <button type="submit" class="btn btn-primary login-btn" id="loginSubmitBtn">
+          <span id="loginBtnText">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1Z"></path>
+            </svg>
+            Unlock Vault
+          </span>
           <span id="loginBtnSpinner" class="spinner-inline" style="display: none;"></span>
         </button>
       </form>
@@ -288,16 +313,15 @@
   <div id="authView" style="display: none;">
     <!-- Header -->
     <div class="popup-header">
-      <div class="logo-small">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M12 12C13.6569 12 15 10.6569 15 9C15 7.34315 13.6569 6 12 6C10.3431 6 9 7.34315 9 9C9 10.6569 10.3431 12 12 12Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M12 12V16" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <div class="user-avatar" id="userAvatar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
         </svg>
       </div>
       <div class="user-info">
         <div class="user-name" id="userName">Loading...</div>
-        <div class="user-role" id="userRole" style="font-size: 12px; color: rgba(255,255,255,0.9); margin-top: 2px;"></div>
+        <div class="user-role" id="userRole" style="font-size: 11px; color: rgba(255,255,255,0.85); margin-top: 2px;"></div>
       </div>
       <button id="refreshBtn" class="btn-icon" title="Refresh Credentials">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

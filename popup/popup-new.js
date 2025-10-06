@@ -201,17 +201,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    credentialsContainer.innerHTML = credentials.map(cred => {
-      // Extract domain for icon
-      const domainMatch = cred.websiteUrl?.match(/(?:https?:\/\/)?(?:www\.)?([^\/\.]+)/);
-      const domainInitial = domainMatch ? domainMatch[1].charAt(0).toUpperCase() : (cred.username?.charAt(0).toUpperCase() || '?');
-      
+    credentialsContainer.innerHTML = credentials.map((cred, index) => {
+      // Use index-based numbering (1, 2, 3...)
+      const serialNumber = index + 1;
+
       return `
         <div class="credential-card" data-id="${cred.id}">
-          <div class="credential-icon">${domainInitial}</div>
+          <div class="credential-icon">${serialNumber}</div>
           <div class="credential-details">
-            <div class="credential-website">${escapeHtml(cred.websiteUrl || 'Unknown Website')}</div>
-            <div class="credential-username">${escapeHtml(cred.username || 'No username')}</div>
+            <div class="credential-website">${escapeHtml(cred.username || 'No username')}</div>
+            <div class="credential-username">${escapeHtml(cred.websiteUrl || 'Unknown Website')}</div>
           </div>
           <button class="fill-btn" data-id="${cred.id}">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
@@ -466,15 +465,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const originalHTML = logoutBtn.innerHTML;
       logoutBtn.innerHTML = '<span class="spinner-inline" style="width: 16px; height: 16px; border-width: 2px;"></span>';
-      
+
       await chrome.runtime.sendMessage({ action: 'logout' });
       isLoggingIn = false; // Reset login flag
-      
+
       setTimeout(() => {
+        logoutBtn.innerHTML = originalHTML; // Restore button
         showLoginView();
         showToast('✓ Logged out successfully', 'success');
       }, 800);
     } catch (error) {
+      logoutBtn.innerHTML = originalHTML; // Restore button on error
       showToast('✗ Logout failed', 'error');
     }
   });
