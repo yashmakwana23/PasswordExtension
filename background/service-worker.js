@@ -177,8 +177,10 @@ async function getCredentialForAutofill(credentialId) {
     return {
       success: true,
       credential: {
+        id: credential.id,
         username: credential.username,
-        password: password
+        password: password,
+        websiteUrl: credential.websiteUrl
       }
     };
 

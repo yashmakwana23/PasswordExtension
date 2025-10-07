@@ -283,6 +283,58 @@ document.addEventListener('DOMContentLoaded', async () => {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
         if (tab) {
+          // Security Check: Validate URL match
+          const credential = response.credential;
+          const credentialUrl = credential.websiteUrl || '';
+          const currentUrl = tab.url || '';
+
+          // Extract domains for comparison
+          const extractDomain = (url) => {
+            if (!url) return '';
+            try {
+              const urlObj = new URL(url.startsWith('http') ? url : 'https://' + url);
+              return urlObj.hostname.replace(/^www\./, '').toLowerCase();
+            } catch (e) {
+              return url.replace(/^(?:https?:\/\/)?(?:www\.)?/, '').split('/')[0].toLowerCase();
+            }
+          };
+
+          const credentialDomain = extractDomain(credentialUrl);
+          const currentDomain = extractDomain(currentUrl);
+
+          console.log('Security Check:', {
+            credentialUrl,
+            currentUrl,
+            credentialDomain,
+            currentDomain,
+            match: credentialDomain === currentDomain
+          });
+
+          // Block if credential has no URL or domains don't match
+          if (!credentialDomain || !currentDomain) {
+            // Restore button state
+            if (fillBtn) {
+              fillBtn.innerHTML = originalHTML;
+              fillBtn.disabled = false;
+            }
+
+            // Block autofill - credential has no URL
+            showToast(`✗ Security blocked: Credential has no website URL configured`, 'error');
+            return;
+          }
+
+          // Check if domains match - Block if they don't
+          if (credentialDomain !== currentDomain) {
+            // Restore button state
+            if (fillBtn) {
+              fillBtn.innerHTML = originalHTML;
+              fillBtn.disabled = false;
+            }
+
+            // Block autofill - show error message
+            showToast(`✗ Security blocked: Credential is for ${credentialDomain}, not ${currentDomain}`, 'error');
+            return;
+          }
           try {
             // Try to send to content script
             await chrome.tabs.sendMessage(tab.id, {
@@ -329,8 +381,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) {
       console.error('Error filling password:', error);
       showToast('✗ Error: ' + error.message, 'error');
-    } finally {
-      // Restore button state
+
+      // Restore button state on error
       const fillBtn = document.querySelector(`.fill-btn[data-id="${credId}"]`);
       if (fillBtn) {
         fillBtn.innerHTML = originalHTML;
